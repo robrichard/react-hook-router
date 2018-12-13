@@ -1,0 +1,90 @@
+<html>
+    <head>
+        <script crossorigin src="https://unpkg.com/react@16.7.0-alpha.2/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@16.7.0-alpha.2/umd/react-dom.development.js"></script>
+        <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    </head>
+    <body>
+        <div id="root"></div>
+    </body>
+    <script type="text/babel">
+        function getUrl() {
+            let url = window.location.pathname;
+            if (window.location.search) {
+                url = url + '?' + window.location.search;
+            }
+            return url;
+        }
+        function useRouter({ getUrlFromState, getStateFromUrl }) {
+            const [state, baseSetState] = React.useState(getStateFromUrl(getUrl()));
+
+            function setState(newState) {
+                console.log('pushstate');
+                baseSetState(newState);
+                window.history.pushState({}, '', getUrlFromState(newState));
+            }
+
+            React.useEffect(() => {
+                const canonicalPathname = getUrlFromState(state);
+                if (getUrl() !== canonicalPathname) {
+                    window.history.replaceState({}, '', canonicalPathname);
+                }
+                
+                function handleUrlChange() {
+                    console.log('popstated');
+                    baseSetState(getStateFromUrl(getUrl()));
+                }
+
+                window.addEventListener('popstate', handleUrlChange);        
+                return () => {
+                    window.removeEventListener('popstate', handleUrlChange);
+                }
+            }, []);
+
+            return [state, setState];
+        }
+
+
+function MyApp(props) {
+    const [routeState, setRouteState] = useRouter({
+        getUrlFromState: ({page, category, productId}) => {
+            if (page === 'browse') {
+                return `/browse/${category}/`;
+            } else if (page === 'product') {
+                return `/product/${productId}`;
+            }
+            return '/'; // home page
+        },
+        getStateFromUrl: url => {
+            const [,firstSegment, secondSegment] = url.split('/')
+            if (firstSegment === 'browse') {
+                return {page: 'browse', category: secondSegment};
+            } else if (firstSegment === 'product') {
+                return {page: 'product', productId: secondSegment};
+            }
+            return {page: 'home'};
+        },
+    });
+    const [inputState, setInputState] = React.useState(JSON.stringify(routeState));
+
+    return (
+        <React.Fragment>
+            <div>{JSON.stringify(routeState)}</div>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    setRouteState(JSON.parse(inputState));
+                }}
+            >
+                <textarea style={{width: 500, height: 500}} value={inputState} onChange={e => setInputState(e.target.value)}/>
+                <button type="submit">Submit</button>
+            </form>
+        </React.Fragment>
+    );
+}
+        ReactDOM.render(
+            <MyApp />,
+            document.getElementById('root')
+        );
+        </script>
+</html>

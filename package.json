@@ -1,0 +1,12 @@
+{
+  "name": "react-hook-router",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:robrichard/react-hook-router.git",
+  "author": "Rob Richard <rob@1stdibs.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "react": "16.7.0-alpha.2",
+    "react-dom": "16.7.0-alpha.2"
+  }
+}
